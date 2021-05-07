@@ -8,6 +8,8 @@ const Chat = () => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
 
+  console.log('test');
+
   const onSelectUser = (user) => {
     setSelectedUser(user);
     user.hasNewMessages = false;
