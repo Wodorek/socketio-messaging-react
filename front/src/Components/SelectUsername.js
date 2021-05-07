@@ -5,7 +5,7 @@ import socket from '../socket';
 const SelectUsername = (props) => {
   const [username, setUsername] = useState('');
 
-  const submitHandler = (event) => {
+  const onUsernameSelection = (event) => {
     event.preventDefault();
     socket.auth = { username };
     socket.connect();
@@ -20,7 +20,7 @@ const SelectUsername = (props) => {
           value={username}
           onChange={(event) => setUsername(event.target.value)}
         />
-        <button disabled={username < 2} onClick={(e) => submitHandler(e)}>
+        <button disabled={username < 2} onClick={(e) => onUsernameSelection(e)}>
           Send
         </button>
       </form>
