@@ -9,8 +9,6 @@ const Chat = () => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  console.log('a');
-
   const selectUserHandler = (user) => {
     setSelectedUser(user);
     user.hasNewMessages = false;
