@@ -68,10 +68,6 @@ const Chat = () => {
     });
 
     socket.on('user disconnected', (id) => {
-      console.log(id);
-
-      console.log(users);
-
       const newUsers = users.map((user) => {
         if (user.userID === id) {
           user.connected = false;
