@@ -50,6 +50,7 @@ const Chat = () => {
         initReactiveProps(user);
       });
 
+      // put the current user first, and sort by username
       const sortedUsers = users.sort((a, b) => {
         if (a.self) return -1;
         if (b.self) return 1;
