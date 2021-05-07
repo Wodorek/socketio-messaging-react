@@ -8,12 +8,12 @@ const Chat = () => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const selectUserHandler = (user) => {
+  const onSelectUser = (user) => {
     setSelectedUser(user);
     user.hasNewMessages = false;
   };
 
-  const messageHandler = (content) => {
+  const onMessage = (content) => {
     if (selectedUser) {
       socket.emit('private message', {
         content,
@@ -109,10 +109,10 @@ const Chat = () => {
           return (
             <User
               hasNewMessages={user.hasNewMessages}
-              select={() => selectUserHandler(user)}
+              select={() => onSelectUser(user)}
               selected={selectedUser === user}
               key={user.userID}
-              name={user.username}
+              username={user.username}
               connected={user.connected}
               self={user.self}
             />
@@ -121,7 +121,7 @@ const Chat = () => {
       </div>
       {selectedUser ? (
         <MessagePanel
-          onMessage={(message) => messageHandler(message)}
+          onMessage={(message) => onMessage(message)}
           user={selectedUser}
         />
       ) : null}

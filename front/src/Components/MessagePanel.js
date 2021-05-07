@@ -13,7 +13,7 @@ const MessagePanel = (props) => {
     );
   };
 
-  const sendMessageHandler = (event) => {
+  const onSubmit = (event) => {
     event.preventDefault();
     props.onMessage(value);
     setValue('');
@@ -46,7 +46,7 @@ const MessagePanel = (props) => {
         {props.user.username}
       </div>
       <ul className={classes.messages}>{messages}</ul>
-      <form onSubmit={(e) => sendMessageHandler(e)} className={classes.form}>
+      <form onSubmit={(e) => onSubmit(e)} className={classes.form}>
         <textarea
           className={classes.input}
           placeholder="Your message..."

@@ -9,9 +9,13 @@ const User = (props) => {
       className={`${classes.user} ${props.selected ? classes.selected : ''}`}
     >
       <div className={classes.description}>
-        <div className={classes.name}>{props.self ? 'Ja' : props.name}</div>
-        <div>
-          <StatusIcon connected={props.connected} />
+        <div className={classes.name}>
+          {props.username}
+          {props.self ? ' (yourself)' : ''}
+        </div>
+        <div className={classes.status}>
+          <StatusIcon connected={props.connected} />{' '}
+          {props.connected ? 'online' : 'offline'}
         </div>
       </div>
       {props.hasNewMessages ? (
