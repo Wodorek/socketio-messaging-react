@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useImmer } from 'use-immer';
 import classes from './Chat.module.css';
 import MessagePanel from './MessagePanel';
 import socket from '../socket';
 import User from './User';
 
 const Chat = () => {
-  const [users, setUsers] = useImmer([]);
+  const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
 
   const onSelectUser = (user) => {
@@ -29,16 +28,24 @@ const Chat = () => {
 
   useEffect(() => {
     socket.on('connect', () => {
-      setUsers((draft) => {
-        draft.forEach((user) => {
-          if (user.self) {
-            user.connected = true;
-          }
-        });
+      const newUsers = users.map((user) => {
+        if (user.self) {
+          user.connected = true;
+        }
+        return user;
       });
+      setUsers(newUsers);
     });
 
-    socket.on('disconnected', () => {});
+    socket.on('disconnected', () => {
+      const newUsers = users.map((user) => {
+        if (user.self) {
+          user.connected = false;
+        }
+        return user;
+      });
+      setUsers(newUsers);
+    });
 
     const initReactiveProps = (user) => {
       user.messages = [];
@@ -46,74 +53,71 @@ const Chat = () => {
     };
 
     socket.on('users', (_users) => {
-      _users.forEach((user) => {
+      let newUsers = _users.map((user) => {
         for (let i = 0; i < users.length; i++) {
           const existingUser = users[i];
           if (existingUser.userID === user.userID) {
             existingUser.connected = user.connected;
-            return;
           }
         }
         user.self = user.userID === socket.userID;
         initReactiveProps(user);
-        setUsers((draft) => {
-          draft.push(user);
-        });
+        return user;
       });
 
-      setUsers((draft) => {
-        draft.sort((a, b) => {
-          if (a.self) return -1;
-          if (b.self) return 1;
-          if (a.username < b.username) return -1;
-          return a.username > b.username ? 1 : 0;
-        });
+      newUsers = newUsers.sort((a, b) => {
+        if (a.self) return -1;
+        if (b.self) return 1;
+        if (a.username < b.username) return -1;
+        return a.username > b.username ? 1 : 0;
       });
+
+      setUsers(newUsers);
     });
 
-    socket.on('user connected', (user) => {
-      setUsers((draft) => {
-        for (let i = 0; i < draft.length; i++) {
-          const existingUser = draft[i];
-          if (existingUser.userID === user.userID) {
-            existingUser.connected = true;
-            return;
-          }
+    socket.on('user connected', (_user) => {
+      let newUser = true;
+      const newUsers = users.map((user) => {
+        if (user.userID === _user.userID) {
+          user.connected = true;
+          newUser = false;
         }
-        initReactiveProps(user);
-        draft.push(user);
+        return user;
       });
+
+      if (newUser) {
+        initReactiveProps(_user);
+        setUsers((prev) => [...prev, _user]);
+      } else {
+        setUsers(newUsers);
+      }
     });
 
     socket.on('user disconnected', (id) => {
-      setUsers((draft) => {
-        for (let i = 0; i < draft.length; i++) {
-          const user = draft[i];
-          if (user.userID === id) {
-            user.connected = false;
-            break;
-          }
+      const newUsers = users.map((user) => {
+        if (user.userID === id) {
+          user.connected = false;
         }
+        return user;
       });
+      setUsers(newUsers);
     });
 
     socket.on('private message', ({ content, from, to }) => {
-      setUsers((draft) => {
-        for (let i = 0; i < draft.length; i++) {
-          const user = draft[i];
-          const fromSelf = socket.userID === from;
-          if (user.userID === (fromSelf ? to : from)) {
-            user.messages.push({
-              content,
-              fromSelf,
-            });
-            if (user !== selectedUser) {
-              user.hasNewMessages = true;
-            }
-            break;
+      const newUsers = users.map((user) => {
+        const fromSelf = socket.userID === from;
+        if (user.userID === (fromSelf ? to : from)) {
+          user.messages.push({
+            content,
+            fromSelf,
+          });
+          if (user !== selectedUser) {
+            user.hasNewMessages = true;
           }
         }
+        return user;
       });
+      setUsers(newUsers);
     });
 
     return () => {

@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import Chat from './Components/Chat';
-import { setAutoFreeze } from 'immer';
 import SelectUsername from './Components/SelectUsername';
 import socket from './socket';
 import classes from './App.module.css';
 
 function App() {
-  setAutoFreeze(false);
   const [usernameSelected, setUsernameSelected] = useState(false);
 
   useEffect(() => {
