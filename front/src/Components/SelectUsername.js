@@ -20,7 +20,10 @@ const SelectUsername = (props) => {
           value={username}
           onChange={(event) => setUsername(event.target.value)}
         />
-        <button disabled={username < 2} onClick={(e) => onUsernameSelection(e)}>
+        <button
+          disabled={username.length <= 2}
+          onClick={(e) => onUsernameSelection(e)}
+        >
           Send
         </button>
       </form>

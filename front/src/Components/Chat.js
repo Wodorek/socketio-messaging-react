@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useImmer } from 'use-immer';
 import classes from './Chat.module.css';
 import MessagePanel from './MessagePanel';
 import socket from '../socket';
 import User from './User';
 
 const Chat = () => {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useImmer([]);
   const [selectedUser, setSelectedUser] = useState(null);
 
   const onSelectUser = (user) => {
@@ -28,70 +29,91 @@ const Chat = () => {
 
   useEffect(() => {
     socket.on('connect', () => {
-      users.forEach((user) => {
-        if (user.self) {
-          user.connected = true;
-        }
-      });
-      setUsers((prev) => {
-        return prev;
+      setUsers((draft) => {
+        draft.forEach((user) => {
+          if (user.self) {
+            user.connected = true;
+          }
+        });
       });
     });
 
+    socket.on('disconnected', () => {});
+
     const initReactiveProps = (user) => {
-      user.connected = true;
       user.messages = [];
       user.hasNewMessages = false;
     };
 
-    socket.on('users', (users) => {
-      users.forEach((user) => {
-        user.self = user.userID === socket.id;
+    socket.on('users', (_users) => {
+      _users.forEach((user) => {
+        for (let i = 0; i < users.length; i++) {
+          const existingUser = users[i];
+          if (existingUser.userID === user.userID) {
+            existingUser.connected = user.connected;
+            return;
+          }
+        }
+        user.self = user.userID === socket.userID;
         initReactiveProps(user);
+        setUsers((draft) => {
+          draft.push(user);
+        });
       });
 
-      // put the current user first, and sort by username
-      const sortedUsers = users.sort((a, b) => {
-        if (a.self) return -1;
-        if (b.self) return 1;
-        if (a.username < b.username) return -1;
-        return a.username > b.username ? 1 : 0;
+      setUsers((draft) => {
+        draft.sort((a, b) => {
+          if (a.self) return -1;
+          if (b.self) return 1;
+          if (a.username < b.username) return -1;
+          return a.username > b.username ? 1 : 0;
+        });
       });
-      setUsers(sortedUsers);
     });
 
     socket.on('user connected', (user) => {
-      initReactiveProps(user);
-      setUsers((prev) => {
-        return [...prev, user];
+      setUsers((draft) => {
+        for (let i = 0; i < draft.length; i++) {
+          const existingUser = draft[i];
+          if (existingUser.userID === user.userID) {
+            existingUser.connected = true;
+            return;
+          }
+        }
+        initReactiveProps(user);
+        draft.push(user);
       });
     });
 
     socket.on('user disconnected', (id) => {
-      const newUsers = users.map((user) => {
-        if (user.userID === id) {
-          user.connected = false;
-        }
-        return user;
-      });
-
-      setUsers(newUsers);
-    });
-
-    socket.on('private message', ({ content, from }) => {
-      const newUsers = users.map((user) => {
-        if (user.userID === from) {
-          user.messages.push({
-            content,
-            fromSelf: false,
-          });
-          if (user !== selectedUser) {
-            user.hasNewMessages = true;
+      setUsers((draft) => {
+        for (let i = 0; i < draft.length; i++) {
+          const user = draft[i];
+          if (user.userID === id) {
+            user.connected = false;
+            break;
           }
         }
-        return user;
       });
-      setUsers(newUsers);
+    });
+
+    socket.on('private message', ({ content, from, to }) => {
+      setUsers((draft) => {
+        for (let i = 0; i < draft.length; i++) {
+          const user = draft[i];
+          const fromSelf = socket.userID === from;
+          if (user.userID === (fromSelf ? to : from)) {
+            user.messages.push({
+              content,
+              fromSelf,
+            });
+            if (user !== selectedUser) {
+              user.hasNewMessages = true;
+            }
+            break;
+          }
+        }
+      });
     });
 
     return () => {
@@ -102,7 +124,7 @@ const Chat = () => {
       socket.off('user disconnected');
       socket.off('private message');
     };
-  }, [selectedUser, users]);
+  }, [selectedUser, setUsers, users]);
   return (
     <div>
       <div className={classes.leftPanel}>

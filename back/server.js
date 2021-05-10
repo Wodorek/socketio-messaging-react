@@ -69,7 +69,7 @@ io.on('connection', (socket) => {
     connected: true,
   });
 
-  // forward the private message to the right recipient
+  // forward the private message to the right recipient (and to other tabs of the sender)
   socket.on('private message', ({ content, to }) => {
     socket.to(to).to(socket.userID).emit('private message', {
       content,
