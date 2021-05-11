@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Chat from './Components/Chat';
+import classes from './App.module.css';
 import SelectUsername from './Components/SelectUsername';
 import socket from './socket';
 
@@ -18,7 +19,7 @@ function App() {
   });
 
   return (
-    <div>
+    <div className={classes.App}>
       {usernameSelected ? (
         <Chat />
       ) : (
