@@ -11,8 +11,8 @@ const randomId = () => crypto.randomBytes(8).toString('hex');
 const { InMemorySessionStore } = require('./sessionStore');
 const sessionStore = new InMemorySessionStore();
 
-const { inMemoryMessageStore } = require('./messageStore');
-const messageStore = new inMemoryMessageStore();
+const { InMemoryMessageStore } = require('./messageStore');
+const messageStore = new InMemoryMessageStore();
 
 io.use((socket, next) => {
   const sessionID = socket.handshake.auth.sessionID;

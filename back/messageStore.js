@@ -3,7 +3,7 @@
   findMessageForUser(userID) {}
 }
 
-class inMemoryMessageStore extends MessageStore {
+class InMemoryMessageStore extends MessageStore {
   constructor() {
     super();
     this.messages = [];
@@ -19,4 +19,4 @@ class inMemoryMessageStore extends MessageStore {
   }
 }
 
-module.exports = { inMemoryMessageStore };
+module.exports = { InMemoryMessageStore };
