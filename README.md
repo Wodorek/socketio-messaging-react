@@ -21,7 +21,9 @@ cd front
 npm install
 npm start
 ```
-The app will run on [localhost:3000](http://localhost:3000). Then start the server:
+The app will run on [localhost:3000](http://localhost:3000).
+
+Then you can start the server:
 
 ```
 cd back
