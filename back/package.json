@@ -2,15 +2,18 @@
   "name": "back",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "dependencies": {
+    "@socket.io/sticky": "^1.0.0",
+    "ioredis": "^4.27.2",
     "nodemon": "^2.0.7",
-    "socket.io": "^4.0.1"
+    "socket.io": "^4.0.1",
+    "socket.io-redis": "^6.1.0"
   },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "nodemon cluster.js"
   },
   "keywords": [],
   "author": "",
