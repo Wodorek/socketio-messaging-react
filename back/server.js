@@ -11,6 +11,9 @@ const randomId = () => crypto.randomBytes(8).toString('hex');
 const { InMemorySessionStore } = require('./sessionStore');
 const sessionStore = new InMemorySessionStore();
 
+const { inMemoryMessageStore } = require('./messageStore');
+const messageStore = new inMemoryMessageStore();
+
 io.use((socket, next) => {
   const sessionID = socket.handshake.auth.sessionID;
   if (sessionID) {
@@ -53,11 +56,22 @@ io.on('connection', (socket) => {
 
   // fetch existing users
   const users = [];
+  const messagesPerUser = new Map();
+  messageStore.findMessagesForUser(socket.userID).forEach((message) => {
+    const { to, from } = message;
+    const otherUser = socket.userID === from ? to : from;
+    if (messagesPerUser.has(otherUser)) {
+      messagesPerUser.get(otherUser).push(message);
+    } else {
+      messagesPerUser.set(otherUser, [message]);
+    }
+  });
   sessionStore.findAllSessions().forEach((session) => {
     users.push({
       userID: session.userID,
       username: session.username,
       connected: session.connected,
+      messages: messagesPerUser.get(session.userID) || [],
     });
   });
   socket.emit('users', users);
@@ -67,15 +81,18 @@ io.on('connection', (socket) => {
     userID: socket.userID,
     username: socket.username,
     connected: true,
+    messages: [],
   });
 
   // forward the private message to the right recipient (and to other tabs of the sender)
   socket.on('private message', ({ content, to }) => {
-    socket.to(to).to(socket.userID).emit('private message', {
+    const message = {
       content,
       from: socket.userID,
       to,
-    });
+    };
+    socket.to(to).to(socket.userID).emit('private message', message);
+    messageStore.saveMessage(message);
   });
 
   // notify users upon disconnection

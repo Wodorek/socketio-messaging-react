@@ -48,16 +48,19 @@ const Chat = () => {
     });
 
     const initReactiveProps = (user) => {
-      user.messages = [];
       user.hasNewMessages = false;
     };
 
     socket.on('users', (_users) => {
       let newUsers = _users.map((user) => {
+        user.messages.forEach((message) => {
+          message.fromSelf = message.from === socket.userID;
+        });
         for (let i = 0; i < users.length; i++) {
           const existingUser = users[i];
           if (existingUser.userID === user.userID) {
             existingUser.connected = user.connected;
+            existingUser.messages = user.messages;
           }
         }
         user.self = user.userID === socket.userID;
